@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits, ChannelType } = require('discord.js');
 const { queries } = require('../database');
 const { NAME_MODES } = require('../utils/nameValidation');
 
@@ -23,6 +23,18 @@ module.exports = {
         )
     )
     .addSubcommand((sub) =>
+      sub
+        .setName('logchannel')
+        .setDescription('Set the channel for verification logs')
+        .addChannelOption((option) =>
+          option
+            .setName('channel')
+            .setDescription('The channel to post logs to (leave empty to disable)')
+            .addChannelTypes(ChannelType.GuildText)
+            .setRequired(false)
+        )
+    )
+    .addSubcommand((sub) =>
       sub.setName('view').setDescription('View current server settings')
     )
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
@@ -39,13 +51,30 @@ module.exports = {
         content: `Name mode set to **${modeInfo.label}**.\nMembers will need to provide: ${modeInfo.format}\nExamples: ${modeInfo.examples}`,
         ephemeral: true,
       });
+    } else if (subcommand === 'logchannel') {
+      const channel = interaction.options.getChannel('channel');
+
+      if (channel) {
+        queries.setLogChannel().run(interaction.guild.id, channel.id);
+        await interaction.reply({
+          content: `Verification logs will be posted to ${channel}.`,
+          ephemeral: true,
+        });
+      } else {
+        queries.setLogChannel().run(interaction.guild.id, null);
+        await interaction.reply({
+          content: 'Verification logging has been disabled.',
+          ephemeral: true,
+        });
+      }
     } else if (subcommand === 'view') {
       const settings = queries.getGuildSettings().get(interaction.guild.id);
       const mode = settings?.name_mode || 'first_initial';
       const modeInfo = NAME_MODES[mode];
+      const logChannel = settings?.log_channel_id ? `<#${settings.log_channel_id}>` : 'Not set';
 
       await interaction.reply({
-        content: `**Current settings:**\nName mode: **${modeInfo.label}**\nFormat: ${modeInfo.format}\nExamples: ${modeInfo.examples}`,
+        content: `**Current settings:**\nName mode: **${modeInfo.label}**\nFormat: ${modeInfo.format}\nExamples: ${modeInfo.examples}\nLog channel: ${logChannel}`,
         ephemeral: true,
       });
     }

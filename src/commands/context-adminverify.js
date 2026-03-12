@@ -1,6 +1,7 @@
 const { ContextMenuCommandBuilder, ApplicationCommandType, PermissionFlagsBits } = require('discord.js');
 const { ensureVerifiedRole } = require('../services/verification');
 const { queries } = require('../database');
+const auditlog = require('../services/auditlog');
 
 module.exports = {
   data: new ContextMenuCommandBuilder()
@@ -8,7 +9,7 @@ module.exports = {
     .setType(ApplicationCommandType.User)
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
-  async execute(interaction) {
+  async execute(interaction, client) {
     const target = interaction.targetMember;
 
     if (!target) {
@@ -25,6 +26,8 @@ module.exports = {
     queries.removePending().run(interaction.guild.id, target.user.id);
     const displayName = target.nickname || target.user.displayName;
     queries.upsertVerified().run(interaction.guild.id, target.user.id, displayName);
+
+    await auditlog.adminVerified(client, interaction.guild.id, target.user, displayName, interaction.user);
 
     await interaction.reply({
       content: `**${target.user.tag}** has been verified as **${displayName}**.`,

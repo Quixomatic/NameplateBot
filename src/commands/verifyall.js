@@ -14,7 +14,7 @@ module.exports = {
     )
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
-  async execute(interaction) {
+  async execute(interaction, client) {
     await interaction.deferReply({ ephemeral: true });
 
     const dryrun = interaction.options.getBoolean('dryrun') ?? false;
@@ -40,7 +40,7 @@ module.exports = {
           : 'All members are already verified or have pending verification requests.'
       );
     } else {
-      const count = await verifyExistingMembers(interaction.guild);
+      const count = await verifyExistingMembers(interaction.guild, client);
 
       await interaction.editReply(
         count > 0

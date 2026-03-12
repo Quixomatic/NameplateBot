@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const { ensureVerifiedRole } = require('../services/verification');
 const { queries } = require('../database');
+const auditlog = require('../services/auditlog');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -11,7 +12,7 @@ module.exports = {
     )
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
-  async execute(interaction) {
+  async execute(interaction, client) {
     const target = interaction.options.getMember('member');
 
     if (!target) {
@@ -25,10 +26,11 @@ module.exports = {
     const role = await ensureVerifiedRole(interaction.guild);
     await target.roles.add(role, 'Nameplate: admin-verified');
 
-    // Clean up pending record and add verified record
     queries.removePending().run(interaction.guild.id, target.user.id);
     const displayName = target.nickname || target.user.displayName;
     queries.upsertVerified().run(interaction.guild.id, target.user.id, displayName);
+
+    await auditlog.adminVerified(client, interaction.guild.id, target.user, displayName, interaction.user);
 
     await interaction.reply({
       content: `**${target.user.tag}** has been verified as **${displayName}**.`,

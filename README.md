@@ -16,6 +16,7 @@ A Discord bot that verifies server members by collecting their real name and set
 |---------|-----------|-------------|
 | `/setname <name>` | Everyone | Set or update your verified name |
 | `/config namemode <mode>` | Administrator | Set the name format requirement (first_only, first_initial, full_name) |
+| `/config logchannel [#channel]` | Administrator | Set the verification log channel (omit channel to disable) |
 | `/config view` | Administrator | View current server settings |
 | `/verifyall` | Administrator | DM all unverified members in the server |
 | `/verifyall dryrun:true` | Administrator | Preview how many members would receive DMs |

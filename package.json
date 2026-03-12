@@ -1,6 +1,6 @@
 {
   "name": "nameplate",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Discord bot that verifies members by setting nicknames to real names",
   "main": "src/index.js",
   "scripts": {

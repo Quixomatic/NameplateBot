@@ -1,5 +1,6 @@
 const { queries } = require('../database');
 const { validateName, NAME_MODES } = require('../utils/nameValidation');
+const auditlog = require('./auditlog');
 
 const VERIFIED_ROLE_NAME = process.env.VERIFIED_ROLE_NAME || 'Verified';
 
@@ -36,7 +37,7 @@ async function ensureVerifiedRole(guild) {
 /**
  * Send the initial verification DM to a user.
  */
-async function sendVerificationDM(member) {
+async function sendVerificationDM(member, client) {
   const mode = getNameMode(member.guild.id);
   const modeInfo = NAME_MODES[mode];
 
@@ -57,6 +58,9 @@ async function sendVerificationDM(member) {
     return true;
   } catch (err) {
     console.error(`Could not DM ${member.user.tag}: ${err.message}`);
+    if (client) {
+      await auditlog.dmFailed(client, member.guild.id, member.user);
+    }
     return false;
   }
 }
@@ -64,7 +68,7 @@ async function sendVerificationDM(member) {
 /**
  * Start the verification flow for a member.
  */
-async function startVerification(member) {
+async function startVerification(member, client) {
   // Skip bots
   if (member.user.bot) return;
 
@@ -80,7 +84,7 @@ async function startVerification(member) {
   queries.upsertPending().run(member.guild.id, member.user.id);
 
   // Send the DM
-  await sendVerificationDM(member);
+  await sendVerificationDM(member, client);
 }
 
 /**
@@ -125,6 +129,7 @@ async function processNameReply(message, client) {
 
       successCount++;
       console.log(`Verified ${message.author.tag} as "${result.displayName}" in ${guild.name}`);
+      await auditlog.verified(client, row.guild_id, message.author, result.displayName);
     } catch (err) {
       console.error(`Failed to verify in guild ${row.guild_id}: ${err.message}`);
       errors.push(err.message);
@@ -158,7 +163,7 @@ function getStrictestMode(modes) {
 /**
  * Initiate verification for all unverified members in a guild.
  */
-async function verifyExistingMembers(guild) {
+async function verifyExistingMembers(guild, client) {
   const role = await ensureVerifiedRole(guild);
   const members = await guild.members.fetch();
   let count = 0;
@@ -178,7 +183,7 @@ async function verifyExistingMembers(guild) {
     if (pending) continue;
 
     queries.upsertPending().run(guild.id, member.user.id);
-    await sendVerificationDM(member);
+    await sendVerificationDM(member, client);
     count++;
 
     // Rate limit: small delay between DMs to avoid hitting Discord limits

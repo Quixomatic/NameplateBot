@@ -31,6 +31,7 @@ function initialize() {
     CREATE TABLE IF NOT EXISTS guild_settings (
       guild_id TEXT PRIMARY KEY,
       name_mode TEXT NOT NULL DEFAULT 'first_initial',
+      log_channel_id TEXT,
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
@@ -42,6 +43,12 @@ function initialize() {
       PRIMARY KEY (guild_id, user_id)
     );
   `);
+
+  // Migrations for existing databases
+  const columns = db.pragma('table_info(guild_settings)').map((c) => c.name);
+  if (!columns.includes('log_channel_id')) {
+    db.exec('ALTER TABLE guild_settings ADD COLUMN log_channel_id TEXT');
+  }
 }
 
 const queries = {
@@ -114,6 +121,14 @@ const queries = {
     VALUES (?, ?)
     ON CONFLICT (guild_id) DO UPDATE SET
       name_mode = excluded.name_mode,
+      updated_at = datetime('now')
+  `),
+
+  setLogChannel: () => getDb().prepare(`
+    INSERT INTO guild_settings (guild_id, log_channel_id)
+    VALUES (?, ?)
+    ON CONFLICT (guild_id) DO UPDATE SET
+      log_channel_id = excluded.log_channel_id,
       updated_at = datetime('now')
   `),
 };

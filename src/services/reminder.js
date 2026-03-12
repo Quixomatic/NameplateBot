@@ -1,5 +1,6 @@
 const { queries } = require('../database');
 const { NAME_MODES } = require('../utils/nameValidation');
+const auditlog = require('./auditlog');
 
 const REMINDER_INTERVAL_HOURS = parseInt(process.env.REMINDER_INTERVAL_HOURS || '24', 10);
 const MAX_REMINDERS = parseInt(process.env.MAX_REMINDERS || '3', 10);
@@ -26,6 +27,11 @@ async function runReminderCycle(client) {
     if (MAX_REMINDERS > 0 && row.reminder_count >= MAX_REMINDERS) {
       queries.markMaxedOut().run(row.guild_id, row.user_id);
       console.log(`Max reminders reached for user ${row.user_id} in guild ${row.guild_id}`);
+      try {
+        const guild = await client.guilds.fetch(row.guild_id);
+        const member = await guild.members.fetch(row.user_id);
+        await auditlog.maxedOut(client, row.guild_id, member.user);
+      } catch (_) {}
       continue;
     }
 
