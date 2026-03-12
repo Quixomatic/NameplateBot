@@ -15,9 +15,32 @@ A Discord bot that verifies server members by collecting their real name and set
 | Command | Permission | Description |
 |---------|-----------|-------------|
 | `/setname <name>` | Everyone | Set or update your verified name |
+| `/config namemode <mode>` | Administrator | Set the name format requirement (first_only, first_initial, full_name) |
+| `/config view` | Administrator | View current server settings |
 | `/verifyall` | Administrator | DM all unverified members in the server |
 | `/reverify <member>` | Administrator | Re-send verification to a specific member |
+| `/adminverify <member>` | Administrator | Manually verify a member without changing their nickname |
 | `/whois <member>` | Moderate Members | Look up a member's verified name |
+
+## Context Menu Commands
+
+Right-click any user > **Apps** to access these commands:
+
+| Command | Permission | Description |
+|---------|-----------|-------------|
+| **Admin Verify** | Administrator | Manually verify a member without changing their nickname |
+| **Re-verify** | Administrator | Re-send verification to a specific member |
+| **Who Is** | Moderate Members | Look up a member's verified name |
+
+## Name Modes
+
+Configurable per server via `/config namemode`:
+
+| Mode | Description | Examples |
+|------|-------------|---------|
+| `first_only` | Just a first name | James, Mary |
+| `first_initial` | First name + last initial (default) | James S, Mary W. |
+| `full_name` | First and last name | James Smith, Mary Watson |
 
 ## Setup
 
@@ -37,9 +60,8 @@ A Discord bot that verifies server members by collecting their real name and set
    - Server Members Intent
    - Message Content Intent
 4. Copy the bot token
-5. Go to **OAuth2 > URL Generator**, select `bot` + `applications.commands`
-6. Select permissions: Manage Nicknames, Manage Roles, Send Messages, Read Messages
-7. Use the generated URL to invite the bot to your server
+5. Go to **Installation** and set up Guild Install with scopes `bot` + `applications.commands` and permissions integer `402654256`
+6. Use the generated install link to invite the bot to your server
 
 ### Configuration
 
@@ -61,20 +83,15 @@ cp .env.example .env
 
 ```bash
 pnpm install
-node src/deploy-commands.js   # Register slash commands (run once)
 pnpm start
 ```
+
+Slash commands are registered automatically on startup.
 
 ### Running with Docker
 
 ```bash
 docker compose up -d
-```
-
-To register slash commands inside the container:
-
-```bash
-docker compose exec nameplate node src/deploy-commands.js
 ```
 
 ### Running with GHCR Image
@@ -98,6 +115,7 @@ services:
 - The bot's role must be **higher** in the role hierarchy than any member it needs to nickname
 - The bot **cannot** change the server owner's nickname (Discord limitation)
 - Make sure the `Verified` role is positioned correctly in your channel permissions to gate access
+- The Verified role is created automatically with a checkmark icon (on Boost Level 2+ servers)
 
 ## License
 
