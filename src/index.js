@@ -3,6 +3,7 @@ const { Client, Collection, GatewayIntentBits, Partials } = require('discord.js'
 const fs = require('fs');
 const path = require('path');
 const { startReminderLoop } = require('./services/reminder');
+const deployCommands = require('./deploy-commands');
 
 const client = new Client({
   intents: [
@@ -61,4 +62,10 @@ process.on('SIGTERM', () => {
   process.exit(0);
 });
 
-client.login(process.env.DISCORD_TOKEN);
+// Deploy slash commands then start the bot
+deployCommands()
+  .then(() => client.login(process.env.DISCORD_TOKEN))
+  .catch((err) => {
+    console.error('Failed to deploy commands:', err);
+    process.exit(1);
+  });
