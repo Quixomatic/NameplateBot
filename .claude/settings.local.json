@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd \"C:/Users/James/Documents/Development/Projects/NicknameBot\" && mkdir -p src/commands src/events src/services src/utils data)",
+      "Bash(cd \"C:/Users/James/Documents/Development/Projects/NicknameBot\" && mkdir -p .github/workflows .docs .plans)"
+    ]
+  }
+}
