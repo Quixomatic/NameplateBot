@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.6] - 2026-03-12
+
+### Added
+- `/adminverify` command — manually verify a member without changing their nickname (Admin)
+
 ## [1.0.5] - 2026-03-12
 
 ### Added
