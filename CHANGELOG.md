@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.7] - 2026-03-12
+
+### Added
+- Right-click user context menu commands: **Admin Verify**, **Re-verify**, **Who Is**
+
 ## [1.0.6] - 2026-03-12
 
 ### Added
