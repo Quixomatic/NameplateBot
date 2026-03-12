@@ -18,9 +18,11 @@ A Discord bot that verifies server members by collecting their real name and set
 | `/config namemode <mode>` | Administrator | Set the name format requirement (first_only, first_initial, full_name) |
 | `/config view` | Administrator | View current server settings |
 | `/verifyall` | Administrator | DM all unverified members in the server |
+| `/verifyall dryrun:true` | Administrator | Preview how many members would receive DMs |
 | `/reverify <member>` | Administrator | Re-send verification to a specific member |
 | `/adminverify <member>` | Administrator | Manually verify a member without changing their nickname |
 | `/whois <member>` | Moderate Members | Look up a member's verified name |
+| `/stats` | Moderate Members | View verification statistics for the server |
 
 ## Context Menu Commands
 
