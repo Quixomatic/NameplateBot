@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-03-12
+
+### Added
+- Per-server configurable name mode via `/config namemode`:
+  - `first_only` — just a first name
+  - `first_initial` — first name + last initial (default)
+  - `full_name` — first and last name required
+- `/config view` command to see current server settings
+- DM prompts, reminders, and validation now reflect the server's configured name mode
+
 ## [1.0.0] - 2026-03-12
 
 ### Added

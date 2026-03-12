@@ -1,7 +1,15 @@
 const { queries } = require('../database');
-const { validateName } = require('../utils/nameValidation');
+const { validateName, NAME_MODES } = require('../utils/nameValidation');
 
 const VERIFIED_ROLE_NAME = process.env.VERIFIED_ROLE_NAME || 'Verified';
+
+/**
+ * Get the name mode for a guild, defaulting to first_initial.
+ */
+function getNameMode(guildId) {
+  const settings = queries.getGuildSettings().get(guildId);
+  return settings?.name_mode || 'first_initial';
+}
 
 /**
  * Ensure the Verified role exists in a guild, creating it if necessary.
@@ -29,13 +37,16 @@ async function ensureVerifiedRole(guild) {
  * Send the initial verification DM to a user.
  */
 async function sendVerificationDM(member) {
+  const mode = getNameMode(member.guild.id);
+  const modeInfo = NAME_MODES[mode];
+
   const embed = {
     color: 0x5865f2,
     title: `Welcome to ${member.guild.name}!`,
     description:
       `To get access to the server, please reply to this message with your **real name**.\n\n` +
-      `**Format:** First name and at least your last initial\n` +
-      `**Examples:** \`James S\`, \`James Smith\`, \`Mary Jane W.\`\n\n` +
+      `**Format:** ${modeInfo.format}\n` +
+      `**Examples:** ${modeInfo.examples}\n\n` +
       `Your name will be set as your server nickname.`,
     footer: { text: `Server: ${member.guild.name}` },
   };
@@ -82,7 +93,11 @@ async function processNameReply(message, client) {
 
   if (userPending.length === 0) return false;
 
-  const result = validateName(message.content);
+  // Validate against each guild's mode — they could differ, but in practice
+  // we validate against the strictest one so the name works everywhere
+  const modes = userPending.map((row) => getNameMode(row.guild_id));
+  const strictest = getStrictestMode(modes);
+  const result = validateName(message.content, strictest);
 
   if (!result.valid) {
     await message.reply(result.reason);
@@ -127,6 +142,17 @@ async function processNameReply(message, client) {
   }
 
   return true;
+}
+
+/**
+ * Given an array of modes, return the strictest one.
+ */
+function getStrictestMode(modes) {
+  const order = ['full_name', 'first_initial', 'first_only'];
+  for (const mode of order) {
+    if (modes.includes(mode)) return mode;
+  }
+  return 'first_initial';
 }
 
 /**

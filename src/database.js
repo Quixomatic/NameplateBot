@@ -28,6 +28,12 @@ function initialize() {
       PRIMARY KEY (guild_id, user_id)
     );
 
+    CREATE TABLE IF NOT EXISTS guild_settings (
+      guild_id TEXT PRIMARY KEY,
+      name_mode TEXT NOT NULL DEFAULT 'first_initial',
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
     CREATE TABLE IF NOT EXISTS verified_members (
       guild_id TEXT NOT NULL,
       user_id TEXT NOT NULL,
@@ -97,6 +103,18 @@ const queries = {
 
   getGuildIds: () => getDb().prepare(`
     SELECT DISTINCT guild_id FROM pending_members WHERE status = 'pending'
+  `),
+
+  getGuildSettings: () => getDb().prepare(`
+    SELECT * FROM guild_settings WHERE guild_id = ?
+  `),
+
+  upsertGuildSettings: () => getDb().prepare(`
+    INSERT INTO guild_settings (guild_id, name_mode)
+    VALUES (?, ?)
+    ON CONFLICT (guild_id) DO UPDATE SET
+      name_mode = excluded.name_mode,
+      updated_at = datetime('now')
   `),
 };
 

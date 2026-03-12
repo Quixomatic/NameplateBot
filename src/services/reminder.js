@@ -1,5 +1,5 @@
 const { queries } = require('../database');
-const { sendVerificationDM } = require('./verification');
+const { NAME_MODES } = require('../utils/nameValidation');
 
 const REMINDER_INTERVAL_HOURS = parseInt(process.env.REMINDER_INTERVAL_HOURS || '24', 10);
 const MAX_REMINDERS = parseInt(process.env.MAX_REMINDERS || '3', 10);
@@ -33,13 +33,18 @@ async function runReminderCycle(client) {
       const guild = await client.guilds.fetch(row.guild_id);
       const member = await guild.members.fetch(row.user_id);
 
+      const settings = queries.getGuildSettings().get(row.guild_id);
+      const mode = settings?.name_mode || 'first_initial';
+      const modeInfo = NAME_MODES[mode];
+
       const embed = {
         color: 0xfee75c,
         title: 'Reminder: Name Verification Needed',
         description:
           `You still need to verify your name to access **${guild.name}**.\n\n` +
-          `Please reply here with your **real name** (first name + at least last initial).\n` +
-          `**Examples:** \`James S\`, \`James Smith\`, \`Mary Jane W.\``,
+          `Please reply here with your **real name**.\n` +
+          `**Format:** ${modeInfo.format}\n` +
+          `**Examples:** ${modeInfo.examples}`,
         footer: {
           text: `Reminder ${row.reminder_count + 1}${MAX_REMINDERS > 0 ? ` of ${MAX_REMINDERS}` : ''}`,
         },

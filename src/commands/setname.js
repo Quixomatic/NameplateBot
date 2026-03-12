@@ -16,7 +16,9 @@ module.exports = {
 
   async execute(interaction) {
     const input = interaction.options.getString('name');
-    const result = validateName(input);
+    const settings = queries.getGuildSettings().get(interaction.guild.id);
+    const mode = settings?.name_mode || 'first_initial';
+    const result = validateName(input, mode);
 
     if (!result.valid) {
       return interaction.reply({ content: result.reason, ephemeral: true });
