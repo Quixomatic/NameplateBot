@@ -1,4 +1,4 @@
-# Nameplate
+# NameplateBot
 
 A Discord bot that verifies server members by collecting their real name and setting it as their server nickname. Members must provide their first name and at least their last initial to gain access.
 
@@ -83,8 +83,8 @@ After pushing a version tag, the image is published to GitHub Container Registry
 
 ```yaml
 services:
-  nickname-bot:
-    image: ghcr.io/YOUR_USERNAME/nameplate:latest
+  nameplate:
+    image: ghcr.io/Quixomatic/NameplateBot:latest
     container_name: nameplate
     restart: unless-stopped
     env_file:

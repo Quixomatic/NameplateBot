@@ -9,11 +9,18 @@ const VERIFIED_ROLE_NAME = process.env.VERIFIED_ROLE_NAME || 'Verified';
 async function ensureVerifiedRole(guild) {
   let role = guild.roles.cache.find((r) => r.name === VERIFIED_ROLE_NAME);
   if (!role) {
-    role = await guild.roles.create({
+    const roleOptions = {
       name: VERIFIED_ROLE_NAME,
       reason: 'Nameplate: auto-created verified role',
-    });
-    console.log(`Created "${VERIFIED_ROLE_NAME}" role in ${guild.name}`);
+    };
+
+    // Set a checkmark emoji as the role icon if the server supports it (Boost Level 2+)
+    if (guild.features.includes('ROLE_ICONS')) {
+      roleOptions.unicodeEmoji = '\u2705';
+    }
+
+    role = await guild.roles.create(roleOptions);
+    console.log(`Created "${VERIFIED_ROLE_NAME}" role in ${guild.name}${guild.features.includes('ROLE_ICONS') ? ' (with icon)' : ''}`);
   }
   return role;
 }
