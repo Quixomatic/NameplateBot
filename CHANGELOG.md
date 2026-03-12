@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-03-12
+
 ### Added
 - Core bot with Discord.js v14
 - Automatic DM verification flow on member join
