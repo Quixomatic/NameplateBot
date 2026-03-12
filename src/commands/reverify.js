@@ -12,14 +12,16 @@ module.exports = {
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
   async execute(interaction) {
+    await interaction.deferReply({ ephemeral: true });
+
     const target = interaction.options.getMember('member');
 
     if (!target) {
-      return interaction.reply({ content: 'Could not find that member.', ephemeral: true });
+      return interaction.editReply({ content: 'Could not find that member.' });
     }
 
     if (target.user.bot) {
-      return interaction.reply({ content: 'Cannot verify bots.', ephemeral: true });
+      return interaction.editReply({ content: 'Cannot verify bots.' });
     }
 
     // Remove existing records so they can re-verify
@@ -34,9 +36,8 @@ module.exports = {
 
     await startVerification(target);
 
-    await interaction.reply({
+    await interaction.editReply({
       content: `Verification DM sent to **${target.user.tag}**.`,
-      ephemeral: true,
     });
   },
 };

@@ -15,11 +15,15 @@ module.exports = {
       await command.execute(interaction, client);
     } catch (err) {
       console.error(`Error executing /${interaction.commandName}:`, err);
-      const reply = { content: 'There was an error executing this command.', ephemeral: true };
-      if (interaction.replied || interaction.deferred) {
-        await interaction.followUp(reply);
-      } else {
-        await interaction.reply(reply);
+      try {
+        const reply = { content: 'There was an error executing this command.', ephemeral: true };
+        if (interaction.replied || interaction.deferred) {
+          await interaction.followUp(reply);
+        } else {
+          await interaction.reply(reply);
+        }
+      } catch (replyErr) {
+        console.error('Could not send error reply:', replyErr.message);
       }
     }
   },

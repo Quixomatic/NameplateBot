@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.4] - 2026-03-12
+
+### Fixed
+- Fix `/reverify` timing out on Discord interactions by deferring the reply
+- Prevent bot crash when interaction expires before error reply can be sent
+
 ## [1.0.3] - 2026-03-12
 
 ### Fixed
