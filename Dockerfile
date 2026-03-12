@@ -6,8 +6,8 @@ WORKDIR /app
 
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
-COPY package.json pnpm-lock.yaml .npmrc ./
-RUN pnpm install --frozen-lockfile --prod && pnpm rebuild better-sqlite3 && apk del python3 make g++
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile --prod && apk del python3 make g++
 
 COPY src/ ./src/
 
