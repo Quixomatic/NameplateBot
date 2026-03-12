@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-03-12
+
+### Fixed
+- Increase verifyall rate limit delay to 3s to avoid Discord gateway rate limits
+
 ## [1.0.9] - 2026-03-12
 
 ### Added
