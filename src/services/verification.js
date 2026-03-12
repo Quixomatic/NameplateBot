@@ -186,8 +186,8 @@ async function verifyExistingMembers(guild, client) {
     await sendVerificationDM(member, client);
     count++;
 
-    // Rate limit: small delay between DMs to avoid hitting Discord limits
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    // Rate limit: delay between DMs to avoid hitting Discord gateway limits
+    await new Promise((resolve) => setTimeout(resolve, 3000));
   }
 
   return count;
