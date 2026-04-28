@@ -3,6 +3,7 @@ const { Client, Collection, GatewayIntentBits, Partials } = require('discord.js'
 const fs = require('fs');
 const path = require('path');
 const { startReminderLoop } = require('./services/reminder');
+const { startQuarantineSweep } = require('./services/quarantine');
 const deployCommands = require('./deploy-commands');
 const { version } = require('../package.json');
 
@@ -32,6 +33,7 @@ const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildMessages,
     GatewayIntentBits.DirectMessages,
     GatewayIntentBits.MessageContent,
   ],
@@ -64,26 +66,23 @@ client.once('clientReady', () => {
   console.log(`Logged in as ${client.user.tag}`);
   console.log(`Serving ${client.guilds.cache.size} guild(s)`);
 
-  // Start reminder loop
   startReminderLoop(client);
+  startQuarantineSweep(client);
 });
 
 // Graceful shutdown
-process.on('SIGINT', () => {
+function shutdown() {
   console.log('Shutting down...');
   const { stopReminderLoop } = require('./services/reminder');
+  const { stopQuarantineSweep } = require('./services/quarantine');
   stopReminderLoop();
+  stopQuarantineSweep();
   client.destroy();
   process.exit(0);
-});
+}
 
-process.on('SIGTERM', () => {
-  console.log('Shutting down...');
-  const { stopReminderLoop } = require('./services/reminder');
-  stopReminderLoop();
-  client.destroy();
-  process.exit(0);
-});
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);
 
 // Deploy slash commands then start the bot
 deployCommands()

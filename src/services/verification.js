@@ -88,6 +88,21 @@ async function startVerification(member, client) {
 }
 
 /**
+ * Apply verification to a member: optionally set nickname, add Verified role, update DB.
+ * Returns the role applied. Throws on permission/Discord errors.
+ */
+async function finalizeVerification(member, displayName, { setNickname = true, reason = 'Nameplate: verified' } = {}) {
+  if (setNickname) {
+    await member.setNickname(displayName, reason);
+  }
+  const role = await ensureVerifiedRole(member.guild);
+  await member.roles.add(role, reason);
+  queries.removePending().run(member.guild.id, member.user.id);
+  queries.upsertVerified().run(member.guild.id, member.user.id, displayName);
+  return role;
+}
+
+/**
  * Process a DM reply from a user attempting to verify.
  */
 async function processNameReply(message, client) {
@@ -116,16 +131,7 @@ async function processNameReply(message, client) {
       const guild = await client.guilds.fetch(row.guild_id);
       const member = await guild.members.fetch(message.author.id);
 
-      // Set nickname
-      await member.setNickname(result.displayName, 'Nameplate: verified name');
-
-      // Assign verified role
-      const role = await ensureVerifiedRole(guild);
-      await member.roles.add(role, 'Nameplate: member verified');
-
-      // Update database
-      queries.removePending().run(row.guild_id, message.author.id);
-      queries.upsertVerified().run(row.guild_id, message.author.id, result.displayName);
+      await finalizeVerification(member, result.displayName, { reason: 'Nameplate: member verified' });
 
       successCount++;
       console.log(`Verified ${message.author.tag} as "${result.displayName}" in ${guild.name}`);
@@ -199,4 +205,6 @@ module.exports = {
   startVerification,
   processNameReply,
   verifyExistingMembers,
+  finalizeVerification,
+  getNameMode,
 };

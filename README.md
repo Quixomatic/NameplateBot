@@ -17,11 +17,18 @@ A Discord bot that verifies server members by collecting their real name and set
 | `/setname <name>` | Everyone | Set or update your verified name |
 | `/config namemode <mode>` | Administrator | Set the name format requirement (first_only, first_initial, full_name) |
 | `/config logchannel [#channel]` | Administrator | Set the verification log channel (omit channel to disable) |
+| `/config quarantinecategory [category]` | Administrator | Set the category quarantine channels are created under (omit to clear) |
+| `/config quarantinemaxage <hours>` | Administrator | Hours before a quarantine channel auto-closes (default 168) |
+| `/config verifierroles add <role>` | Administrator | Add a role to the verifier list (gets access to quarantine channels alongside admins) |
+| `/config verifierroles remove <role>` | Administrator | Remove a role from the verifier list |
 | `/config view` | Administrator | View current server settings |
 | `/verifyall` | Administrator | DM all unverified members in the server |
 | `/verifyall dryrun:true` | Administrator | Preview how many members would receive DMs |
 | `/reverify <member>` | Administrator | Re-send verification to a specific member |
 | `/adminverify <member>` | Administrator | Manually verify a member without changing their nickname |
+| `/quarantine <member>` | Administrator | Open a private channel with the member and admins to collect their name |
+| `/resolve [name]` | Administrator | Resolve the current quarantine channel (in-channel only) |
+| `/abandon` | Administrator | Abandon the current quarantine channel without verifying (in-channel only) |
 | `/whois <member>` | Moderate Members | Look up a member's verified name |
 | `/stats` | Moderate Members | View verification statistics for the server |
 
@@ -33,6 +40,7 @@ Right-click any user > **Apps** to access these commands:
 |---------|-----------|-------------|
 | **Admin Verify** | Administrator | Manually verify a member without changing their nickname |
 | **Re-verify** | Administrator | Re-send verification to a specific member |
+| **Quarantine** | Administrator | Open a private channel with the member and admins to collect their name |
 | **Who Is** | Moderate Members | Look up a member's verified name |
 
 ## Name Modes
@@ -51,7 +59,7 @@ Configurable per server via `/config namemode`:
 
 - Node.js 20+
 - A Discord bot application with the following enabled:
-  - **Bot** permissions: Manage Nicknames, Manage Roles, Send Messages
+  - **Bot** permissions: Manage Nicknames, Manage Roles, Manage Channels, Send Messages
   - **Privileged Gateway Intents**: Server Members Intent, Message Content Intent
   - **OAuth2 scopes**: `bot`, `applications.commands`
 
@@ -113,12 +121,24 @@ services:
       - ./data:/app/data
 ```
 
+## Quarantine Channels
+
+When DMs and reminders fail, an admin can run `/quarantine <member>` (or right-click → Quarantine) to spawn a private channel containing the member, the bot, and all admins. The bot pings the member there asking for their real name. The channel persists until:
+
+- The member replies with a valid name (nickname set, role assigned, channel auto-deletes after 60s)
+- An admin runs `/resolve [name]` from inside the channel (with optional name override; auto-deletes after 60s)
+- An admin runs `/abandon` from inside the channel (marks the member as maxed-out, auto-deletes after 30s)
+- The channel exceeds `quarantinemaxage` hours (default 168 / 7 days) and is auto-closed by the hourly sweep
+
+By default everyone with the `Administrator` permission gets access. Use `/config verifierroles add <role>` to also include moderator-style roles.
+
 ## Important Notes
 
 - The bot's role must be **higher** in the role hierarchy than any member it needs to nickname
 - The bot **cannot** change the server owner's nickname (Discord limitation)
 - Make sure the `Verified` role is positioned correctly in your channel permissions to gate access
 - The Verified role is created automatically with a checkmark icon (on Boost Level 2+ servers)
+- Quarantine channels need the **Manage Channels** permission. Existing installs that pre-date this feature may need to re-invite the bot or grant the permission via Server Settings → Roles.
 
 ## License
 

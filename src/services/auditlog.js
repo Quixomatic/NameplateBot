@@ -7,6 +7,8 @@ const COLORS = {
   maxed_out: 0xfe7543,
   reverify: 0xfee75c,
   reminder: 0x99aab5,
+  quarantine: 0x9b59b6,
+  quarantine_abandoned: 0xfe7543,
 };
 
 /**
@@ -81,6 +83,43 @@ const auditlog = {
       title: 'Re-verification Sent',
       description: `**${user.tag}** sent re-verification by ${admin.tag}`,
       color: COLORS.reverify,
+      user,
+    });
+  },
+
+  quarantineCreated(client, guildId, user, admin, channel) {
+    return log(client, guildId, {
+      title: 'Quarantine Channel Created',
+      description: `**${user.tag}** quarantined by ${admin.tag} → <#${channel.id}>`,
+      color: COLORS.quarantine,
+      user,
+    });
+  },
+
+  quarantineResolvedByUser(client, guildId, user, displayName) {
+    return log(client, guildId, {
+      title: 'Quarantine Resolved (by user)',
+      description: `**${user.tag}** resolved quarantine as **${displayName}**`,
+      color: COLORS.verified,
+      user,
+    });
+  },
+
+  quarantineResolvedByAdmin(client, guildId, user, displayName, admin) {
+    return log(client, guildId, {
+      title: 'Quarantine Resolved (by admin)',
+      description: `**${user.tag}** resolved as **${displayName}** by ${admin.tag}`,
+      color: COLORS.admin_verified,
+      user,
+    });
+  },
+
+  quarantineAbandoned(client, guildId, user, admin) {
+    const by = admin ? `by ${admin.tag}` : 'automatically (max age reached)';
+    return log(client, guildId, {
+      title: 'Quarantine Abandoned',
+      description: `**${user.tag}** quarantine abandoned ${by}`,
+      color: COLORS.quarantine_abandoned,
       user,
     });
   },

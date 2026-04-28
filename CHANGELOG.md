@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Quarantine channel feature: `/quarantine <member>` (and right-click context menu) creates a private channel containing the member, the bot, and all admins. The bot pings the member there for their real name.
+- `/resolve [name]` (admin, in-channel) finalizes a quarantine, optionally overriding the nickname.
+- `/abandon` (admin, in-channel) closes a quarantine without verifying, marking the member as maxed-out.
+- Members can self-resolve a quarantine by replying in the channel with a valid name.
+- `/config verifierroles add|remove <role>` to grant additional roles access to quarantine channels alongside admins.
+- `/config quarantinecategory [category]` to nest quarantine channels under a category.
+- `/config quarantinemaxage <hours>` to control auto-close timeout (default 168h / 7 days).
+- Hourly sweep cleans up quarantine channels for members who left, channels deleted out of band, and channels older than the configured max age.
+- New audit log events for quarantine create / resolve (by user or admin) / abandon, posted to the existing log channel.
+
+### Changed
+- Bot now requires the **Manage Channels** permission and the `GuildMessages` intent. Re-invite or grant the permission manually for existing deployments.
+
 ## [1.1.0] - 2026-03-12
 
 ### Fixed

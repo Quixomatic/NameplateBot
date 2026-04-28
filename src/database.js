@@ -32,6 +32,9 @@ function initialize() {
       guild_id TEXT PRIMARY KEY,
       name_mode TEXT NOT NULL DEFAULT 'first_initial',
       log_channel_id TEXT,
+      verifier_role_ids TEXT,
+      quarantine_category_id TEXT,
+      quarantine_max_age_hours INTEGER NOT NULL DEFAULT 168,
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
@@ -42,12 +45,30 @@ function initialize() {
       verified_at TEXT NOT NULL DEFAULT (datetime('now')),
       PRIMARY KEY (guild_id, user_id)
     );
+
+    CREATE TABLE IF NOT EXISTS quarantine_channels (
+      guild_id TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      channel_id TEXT NOT NULL UNIQUE,
+      created_by TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      PRIMARY KEY (guild_id, user_id)
+    );
   `);
 
   // Migrations for existing databases
-  const columns = db.pragma('table_info(guild_settings)').map((c) => c.name);
-  if (!columns.includes('log_channel_id')) {
+  const settingsColumns = db.pragma('table_info(guild_settings)').map((c) => c.name);
+  if (!settingsColumns.includes('log_channel_id')) {
     db.exec('ALTER TABLE guild_settings ADD COLUMN log_channel_id TEXT');
+  }
+  if (!settingsColumns.includes('verifier_role_ids')) {
+    db.exec('ALTER TABLE guild_settings ADD COLUMN verifier_role_ids TEXT');
+  }
+  if (!settingsColumns.includes('quarantine_category_id')) {
+    db.exec('ALTER TABLE guild_settings ADD COLUMN quarantine_category_id TEXT');
+  }
+  if (!settingsColumns.includes('quarantine_max_age_hours')) {
+    db.exec('ALTER TABLE guild_settings ADD COLUMN quarantine_max_age_hours INTEGER NOT NULL DEFAULT 168');
   }
 }
 
@@ -130,6 +151,59 @@ const queries = {
     ON CONFLICT (guild_id) DO UPDATE SET
       log_channel_id = excluded.log_channel_id,
       updated_at = datetime('now')
+  `),
+
+  setVerifierRoles: () => getDb().prepare(`
+    INSERT INTO guild_settings (guild_id, verifier_role_ids)
+    VALUES (?, ?)
+    ON CONFLICT (guild_id) DO UPDATE SET
+      verifier_role_ids = excluded.verifier_role_ids,
+      updated_at = datetime('now')
+  `),
+
+  setQuarantineCategory: () => getDb().prepare(`
+    INSERT INTO guild_settings (guild_id, quarantine_category_id)
+    VALUES (?, ?)
+    ON CONFLICT (guild_id) DO UPDATE SET
+      quarantine_category_id = excluded.quarantine_category_id,
+      updated_at = datetime('now')
+  `),
+
+  setQuarantineMaxAge: () => getDb().prepare(`
+    INSERT INTO guild_settings (guild_id, quarantine_max_age_hours)
+    VALUES (?, ?)
+    ON CONFLICT (guild_id) DO UPDATE SET
+      quarantine_max_age_hours = excluded.quarantine_max_age_hours,
+      updated_at = datetime('now')
+  `),
+
+  insertQuarantine: () => getDb().prepare(`
+    INSERT INTO quarantine_channels (guild_id, user_id, channel_id, created_by)
+    VALUES (?, ?, ?, ?)
+  `),
+
+  getQuarantineByChannel: () => getDb().prepare(`
+    SELECT * FROM quarantine_channels WHERE channel_id = ?
+  `),
+
+  getQuarantineByUser: () => getDb().prepare(`
+    SELECT * FROM quarantine_channels WHERE guild_id = ? AND user_id = ?
+  `),
+
+  getAllQuarantines: () => getDb().prepare(`
+    SELECT * FROM quarantine_channels
+  `),
+
+  getQuarantinesForGuild: () => getDb().prepare(`
+    SELECT * FROM quarantine_channels WHERE guild_id = ?
+  `),
+
+  deleteQuarantine: () => getDb().prepare(`
+    DELETE FROM quarantine_channels WHERE guild_id = ? AND user_id = ?
+  `),
+
+  deleteQuarantineByChannel: () => getDb().prepare(`
+    DELETE FROM quarantine_channels WHERE channel_id = ?
   `),
 };
 
