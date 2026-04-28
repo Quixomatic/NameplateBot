@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-04-28
+
 ### Added
 - Quarantine channel feature: `/quarantine <member>` (and right-click context menu) creates a private channel containing the member, the bot, and all admins. The bot pings the member there for their real name.
 - `/resolve [name]` (admin, in-channel) finalizes a quarantine, optionally overriding the nickname.
